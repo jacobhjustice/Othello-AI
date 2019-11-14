@@ -4,7 +4,7 @@
         <div id="Othello-Board">
             <div class="row" v-for="row in rows">
                 <div v-for="cell in row" class="cell" >
-                    <div v-bind:class="{tile: true, white: cell.status == 1, black: cell.status == 2,}"></div>
+                    <div v-bind:class="{tile: true, white: cell.status == 1, black: cell.status == 0}"></div>
                 </div>
             </div>
         </div>
