@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <div id="Othello-Board">
+            <div class="row" v-for="row in rows">
+                <div v-for="cell in row" class="cell" >
+                    <div v-bind:class="{tile: true, white: cell.status == 1, black: cell.status == 2,}"></div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>  
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="index.js"></script>
+<link rel = "stylesheet" href= "index.css"></link>

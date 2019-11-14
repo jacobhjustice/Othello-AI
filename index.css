@@ -1,0 +1,38 @@
+body {
+    background-color: #405060;
+}
+
+#Othello-Board {
+    margin: 0 auto;
+    width: 400px;
+    height: 400px;
+    display: table;
+}
+
+.row {
+    display: table-row;
+}
+
+.cell {
+    display: table-cell;
+    width: 50px;
+    height: 50px;
+    border: 1px solid #8844ff;
+    border-collapse: collapse;
+    cursor: pointer;
+}
+
+.tile {
+    border-radius: 100px;
+    height: 80%;
+    width: 80%;
+    margin: 10%;
+}
+
+.tile.white {
+    background-color: #ffffff;
+}
+
+.tile.black {
+    background-color: #000000;
+}
