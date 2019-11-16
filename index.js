@@ -11,6 +11,9 @@ var Othello = {
         this.status = status;
         this.selectable = false;
     },
+
+    // Given an index and whether or not it corresponds to a row
+    // Return whether or not the index is valid
     checkIndex(index, isRow) {
         if (isRow) {
             return (index < this.ROW_SIZE && index >= 0);
@@ -18,12 +21,14 @@ var Othello = {
         return (index < this.COL_SIZE && index >= 0)
     },
 
-    getNeighborCells(cell) {
+    // Given a set of cells, and a specific cell in the set
+    // Find the neighbors of cell
+    getNeighborCells(cells, cell) {
         neighbors = [];
         for (var r = -1; r <= 1; r++) {
             var rowIndex = cell.row + r;
             if (this.checkIndex(rowIndex, true)) {
-                var currentRow = this.cells[rowIndex];
+                var currentRow = cells[rowIndex];
                 for (var c = -1; c <= 1; c++) {
                     var colIndex = cell.column + c;
                     if (this.checkIndex(colIndex, false)) {
@@ -73,12 +78,13 @@ var Othello = {
     },
     ROW_SIZE: 8,
     COL_SIZE:  8,
-    cells: [],
+
+    currentGameCells: [],
     playerTurn: -1,
     humanPlayer: -1,
     initialize: function() {
         // Create the set of cells
-        this.cells = [];
+        this.currentGameCells = [];
         for (var r = 0; r < this.ROW_SIZE; r++) {
             var row = [];
             for (var c = 0; c < this.COL_SIZE; c++) {
@@ -91,7 +97,7 @@ var Othello = {
                 }
                 row.push(new this.Cell(r, c, status));
             }
-            this.cells.push(row);
+            this.currentGameCells.push(row);
         }
 
         // Set Black to go first
@@ -103,7 +109,7 @@ var Othello = {
         // Initialize UI
         this.UI.initializeMessageComponent();
         var self = this;
-        this.UI.initializeBoardComponent(this.cells, (e) => {
+        this.UI.initializeBoardComponent(this.currentGameCells, (e) => {
             if (e.currentTarget.classList.contains("selectable")) {
                 var row = e.currentTarget.dataset.row;
                 var col = e.currentTarget.dataset.column;
@@ -116,18 +122,22 @@ var Othello = {
         
     }, 
 
-    resetSelectableCells: function() {
-        this.cells.forEach(row => {
+    // Given a set of cells
+    // Reset the selectable property in each infividual cell to false
+    resetSelectableCells: function(cells) {
+        cells.forEach(row => {
             row.forEach(cell => {
                 cell.selectable = false;
             })
         });
     }, 
 
-    updateSelectableCells: function() {
-        this.resetSelectableCells();
+    // Given a set of cells
+    // Update all potential cells by the rules of Othello to have selectable attribute = true
+    updateSelectableCells: function(cells) {
+        this.resetSelectableCells(cells);
 
-        selectableCells = this.getSelectableCells();
+        selectableCells = this.getSelectableCells(cells);
         selectableCells.forEach(cell => {
             cell.selectable = true;
         });
@@ -141,18 +151,23 @@ var Othello = {
         }
     },
 
+    // Given a row and column to the currentGameCells
+    // Set that cell to the current player's move.
     move: function(row, column) {
-        cell = this.cells[row][column]
+        var cells = this.currentGameCells;
+        cell = cells[row][column]
         cell.status = this.playerTurn;
-        this.flipEffectedCellsFromMove(cell)
-        this.playerTurn = this.getOpposingPlayer();
+        this.flipEffectedCellsFromMove(cells, cell)
+        this.playerTurn = this.getOpposingPlayer(this.playerTurn);
 
         this.turn();
     },
 
-    flipEffectedCellsFromMove: function(movedCell) {
-        var neighbors = this.getNeighborCells(movedCell);
-        var opposingColor = this.getOpposingPlayer();
+    // Given a set of cells and a movedCell that has just been placed down
+    // Evaluate the new grid after flipping "sandwhiched" cells by following the ruled of Othello
+    flipEffectedCellsFromMove: function(cells, movedCell) {
+        var neighbors = this.getNeighborCells(cells, movedCell);
+        var opposingColor = this.getOpposingPlayer(this.playerTurn);
         neighbors.forEach(cell => {
             if (cell.status == opposingColor) {
                 var directionR = cell.row - movedCell.row;
@@ -171,7 +186,7 @@ var Othello = {
                     }
 
                     // Move to next cell, and if it is not of the opponent's color, we failed.
-                    current = this.cells[rowIndex][colIndex];
+                    current = cells[rowIndex][colIndex];
                     if (current.status == this.Status.UNDETERMINED) {
                         failedFind = true;
                         break;
@@ -190,25 +205,32 @@ var Othello = {
 
     humanTurn: function() {
         this.UI.setTurnMessageHuman();
-        // Render the initial set
-        this.updateSelectableCells();
-        this.UI.updateBoard(this.cells);
+        this.updateSelectableCells(this.currentGameCells);
+        this.UI.updateBoard(this.currentGameCells);
     },
 
     computerTurn: function() {
         this.UI.setTurnMessageComputer();
-        // this.resetSelectableCells();
-        // this.UI.updateBoard(this.cells);
+        // this.resetSelectableCells(this.currentGameCells);
+        // this.UI.updateBoard(this.currentGameCells);
         this.humanTurn();
-        // this.UI.renderBoard(this.cells, (e) => {});
+        // this.UI.renderBoard(this.currentGameCells, (e) => {});
+
+        // AI Logic goes here.
+        // minimax: Should use the existing functions to build trees of board states and determine the best option to a given depth
+        // Should NOT go back and forth calling humanTurn and computerTurn as that will mess up the current "real" state of the game.
+        // If needed, consider creating a new class/struct to encapsulate all AI related computations
     },
 
-    getSelectableCells: function() {
+    // Given a set of cells
+    // Return an array of all cells that are selectable within that set
+    getSelectableCells: function(cells) {
         contenders = [];
-        var potentialAdjacentColor = this.getOpposingPlayer();
+        var currentTurn = this.playerTurn;
+        var potentialAdjacentColor = this.getOpposingPlayer(currentTurn);
         for (var r = 0; r < this.ROW_SIZE; r++) {
             for (var c = 0; c < this.COL_SIZE; c++) {
-                var cell = this.cells[r][c];
+                var cell = cells[r][c];
 
                 // Check to see if cell is avaliable
                 if (cell.status != this.Status.UNDETERMINED) {
@@ -216,7 +238,7 @@ var Othello = {
                 }
                 
                 // Check neighbors of opposing color
-                var neighbors = this.getNeighborCells(cell);
+                var neighbors = this.getNeighborCells(cells, cell);
                 for (var i = 0; i < neighbors.length; i++) {
                     neighbor = neighbors[i];
                     if (neighbor.status == potentialAdjacentColor) {
@@ -237,12 +259,12 @@ var Othello = {
                             }
 
                             // Move to next cell, and if it is not of the opponent's color, we failed.
-                            current = this.cells[rowIndex][colIndex];
+                            current = cells[rowIndex][colIndex];
                             if (current.status == this.Status.UNDETERMINED) {
                                 failedFind = true;
                                 break;
                             }
-                        } while(current.status != this.playerTurn)
+                        } while(current.status != currentTurn)
                         if (!failedFind) {
                             contenders.push(cell);
                             break;
@@ -254,9 +276,11 @@ var Othello = {
         return contenders;
     },
 
-    getOpposingPlayer: function() {
+    // Given the current player
+    // Return the opposite player
+    getOpposingPlayer: function(currentTurn) {
         var testPlayer = this.Status.BLACK;
-        if (testPlayer != this.playerTurn) {
+        if (testPlayer != currentTurn) {
             return testPlayer;
         }
         return this.Status.WHITE;
