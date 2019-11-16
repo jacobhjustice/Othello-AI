@@ -42,7 +42,7 @@ var Othello = {
         boardID: "#Othello-Board",
         messageID: "#Othello-Message",
         board: undefined,
-        renderBoard: function(cells, selectCallback) {
+        initializeBoardComponent: function(cells, selectCallback) {
             this.board = new Vue({
                 el: this.boardID,
                 data: {
@@ -66,6 +66,9 @@ var Othello = {
         },
         setTurnMessageHuman: function() {
             this.message.text = "Select a highlighted cell to move there!";
+        },
+        updateBoard: function(cells) {
+            this.board.rows = cells;
         }
     },
     ROW_SIZE: 8,
@@ -99,6 +102,14 @@ var Othello = {
 
         // Initialize UI
         this.UI.initializeMessageComponent();
+        var self = this;
+        this.UI.initializeBoardComponent(this.cells, (e) => {
+            if (e.currentTarget.classList.contains("selectable")) {
+                var row = e.currentTarget.dataset.row;
+                var col = e.currentTarget.dataset.column;
+                self.move(row, col);
+            }
+        });
 
         // Begin sequence of turns 
         this.turn();
@@ -165,6 +176,7 @@ var Othello = {
                         failedFind = true;
                         break;
                     }
+                    middleCells.push(current)
                 } while(current.status != this.playerTurn)
                 if (!failedFind) {
                     middleCells.forEach(cell => {
@@ -180,20 +192,14 @@ var Othello = {
         this.UI.setTurnMessageHuman();
         // Render the initial set
         this.updateSelectableCells();
-        var self = this;
-        this.UI.renderBoard(this.cells, (e) => {
-            if (e.currentTarget.classList.contains("selectable")) {
-                var row = e.currentTarget.dataset.row;
-                var col = e.currentTarget.dataset.column;
-                self.move(row, col);
-            }
-        });
+        this.UI.updateBoard(this.cells);
     },
 
     computerTurn: function() {
         this.UI.setTurnMessageComputer();
-        this.resetSelectableCells();
-        this.UI.board.rows = this.cells;
+        // this.resetSelectableCells();
+        // this.UI.updateBoard(this.cells);
+        this.humanTurn();
         // this.UI.renderBoard(this.cells, (e) => {});
     },
 
@@ -238,9 +244,9 @@ var Othello = {
                             }
                         } while(current.status != this.playerTurn)
                         if (!failedFind) {
-                            contenders.push(cell)
+                            contenders.push(cell);
+                            break;
                         }
-                        break;
                     }
                 }
             }
