@@ -41,29 +41,31 @@ var Othello = {
     UI: {
         boardID: "#Othello-Board",
         messageID: "#Othello-Message",
-        renderBoard: function(cells) {
-            new Vue({
+        board: undefined,
+        renderBoard: function(cells, selectCallback) {
+            this.board = new Vue({
                 el: this.boardID,
                 data: {
                   rows: cells,
+                },
+                methods: {
+                    select: selectCallback
                 }
             });
         },
-        displayHumanTurnMessage: function() {
-            new Vue({
+        initializeMessageComponent: function() {
+            this.message = new Vue({
                 el: this.messageID,
                 data: {
-                  message: "Select a highlighted cell to move there!",
+                  text: "",
                 }
             });
         },
-        displayComputerTurnMessage: function() {
-            new Vue({
-                el: this.messageID,
-                data: {
-                  message: "Please wait while the computer decides its move...",
-                }
-            });
+        setTurnMessageComputer: function() {
+            this.message.text = "Please wait while the computer decides its move...";
+        },
+        setTurnMessageHuman: function() {
+            this.message.text = "Select a highlighted cell to move there!";
         }
     },
     ROW_SIZE: 8,
@@ -95,15 +97,24 @@ var Othello = {
         // Set human player to black
         this.humanPlayer = this.Status.BLACK;
 
+        // Initialize UI
+        this.UI.initializeMessageComponent();
+
         // Begin sequence of turns 
         this.turn();
         
     }, 
 
-    updateSelectableCells: function() {
-        this.cells.forEach(cell => {
-            cell.selectable = false;
+    resetSelectableCells: function() {
+        this.cells.forEach(row => {
+            row.forEach(cell => {
+                cell.selectable = false;
+            })
         });
+    }, 
+
+    updateSelectableCells: function() {
+        this.resetSelectableCells();
 
         selectableCells = this.getSelectableCells();
         selectableCells.forEach(cell => {
@@ -119,20 +130,71 @@ var Othello = {
         }
     },
 
-    move: function(cell, player) {
-        cell.status = player;
+    move: function(row, column) {
+        cell = this.cells[row][column]
+        cell.status = this.playerTurn;
+        this.flipEffectedCellsFromMove(cell)
         this.playerTurn = this.getOpposingPlayer();
+
+        this.turn();
+    },
+
+    flipEffectedCellsFromMove: function(movedCell) {
+        var neighbors = this.getNeighborCells(movedCell);
+        var opposingColor = this.getOpposingPlayer();
+        neighbors.forEach(cell => {
+            if (cell.status == opposingColor) {
+                var directionR = cell.row - movedCell.row;
+                var directionC = cell.column - movedCell.column;
+                var failedFind = false;
+                var middleCells = [cell];
+                var current = cell;
+                // TODO extract incremental trail logic
+                do {
+                    // Increment to next spot, and validate.
+                    var rowIndex = current.row + directionR
+                    var colIndex = current.column + directionC
+                    if (!this.checkIndex(rowIndex, true) || !this.checkIndex(colIndex, false)) {
+                        failedFind = true
+                        break;
+                    }
+
+                    // Move to next cell, and if it is not of the opponent's color, we failed.
+                    current = this.cells[rowIndex][colIndex];
+                    if (current.status == this.Status.UNDETERMINED) {
+                        failedFind = true;
+                        break;
+                    }
+                } while(current.status != this.playerTurn)
+                if (!failedFind) {
+                    middleCells.forEach(cell => {
+                        cell.status = this.playerTurn;
+                    });
+                }
+            }
+
+        });
     },
 
     humanTurn: function() {
-        this.UI.displayHumanTurnMessage();
+        this.UI.setTurnMessageHuman();
         // Render the initial set
         this.updateSelectableCells();
-        this.UI.renderBoard(this.cells);
+        var self = this;
+        this.UI.renderBoard(this.cells, (e) => {
+            if (e.currentTarget.classList.contains("selectable")) {
+                var row = e.currentTarget.dataset.row;
+                var col = e.currentTarget.dataset.column;
+                self.move(row, col);
+            }
+        });
     },
 
     computerTurn: function() {
-        this.UI.displayComputerTurnMessage();
+        this.UI.setTurnMessageComputer();
+        this.resetSelectableCells();
+        this.UI.board.rows = this.cells;
+        // this.UI.renderBoard(this.cells, (e) => {});
     },
 
     getSelectableCells: function() {
@@ -163,7 +225,7 @@ var Othello = {
                             // Increment to next spot, and validate.
                             var rowIndex = current.row + directionR
                             var colIndex = current.column + directionC
-                            if(!this.checkIndex(rowIndex, true) || !this.checkIndex(colIndex, false)) {
+                            if (!this.checkIndex(rowIndex, true) || !this.checkIndex(colIndex, false)) {
                                 failedFind = true
                                 break;
                             }

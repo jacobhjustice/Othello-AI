@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
     <body>
-        <div id="Othello-Message">{{message}}</div>
+        <div id="Othello-Message">{{text}}</div>
         <div id="Othello-Board">
             <div class="row" v-for="row in rows">
                 <div v-for="cell in row" class="cell" >
-                    <div v-bind:class="{tileWrapper: true, selectable: cell.selectable == true }">
+                    <div v-bind:class="{tileWrapper: true, selectable: cell.selectable == true }"  v-bind:data-row="cell.row" v-bind:data-column="cell.column" v-on:click="select">
                         <div v-bind:class="{tile: true, white: cell.status == 1, black: cell.status == 0}"></div>
                     </div>
                 </div>
