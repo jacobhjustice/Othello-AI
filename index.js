@@ -13,9 +13,9 @@ var Othello = {
     },
     checkIndex(index, isRow) {
         if (isRow) {
-            return (rowIndex < this.cells.length && rowIndex >= 0);
+            return (index < this.ROW_SIZE && index >= 0);
         }
-        return (colIndex < currentRow.length && colIndex >= 0)
+        return (index < this.COL_SIZE && index >= 0)
     },
 
     getNeighborCells(cell) {
@@ -40,11 +40,28 @@ var Othello = {
 
     UI: {
         boardID: "#Othello-Board",
+        messageID: "#Othello-Message",
         renderBoard: function(cells) {
             new Vue({
                 el: this.boardID,
                 data: {
                   rows: cells,
+                }
+            });
+        },
+        displayHumanTurnMessage: function() {
+            new Vue({
+                el: this.messageID,
+                data: {
+                  message: "Select a highlighted cell to move there!",
+                }
+            });
+        },
+        displayComputerTurnMessage: function() {
+            new Vue({
+                el: this.messageID,
+                data: {
+                  message: "Please wait while the computer decides its move...",
                 }
             });
         }
@@ -53,6 +70,7 @@ var Othello = {
     COL_SIZE:  8,
     cells: [],
     playerTurn: -1,
+    humanPlayer: -1,
     initialize: function() {
         // Create the set of cells
         this.cells = [];
@@ -74,9 +92,48 @@ var Othello = {
         // Set Black to go first
         this.playerTurn = this.Status.BLACK;
 
-        // Render the initial set
-        this.UI.renderBoard(this.cells);
+        // Set human player to black
+        this.humanPlayer = this.Status.BLACK;
+
+        // Begin sequence of turns 
+        this.turn();
+        
     }, 
+
+    updateSelectableCells: function() {
+        this.cells.forEach(cell => {
+            cell.selectable = false;
+        });
+
+        selectableCells = this.getSelectableCells();
+        selectableCells.forEach(cell => {
+            cell.selectable = true;
+        });
+    },
+
+    turn: function() {
+        if (this.humanPlayer == this.playerTurn) {
+            this.humanTurn();
+        } else {
+            this.computerTurn();
+        }
+    },
+
+    move: function(cell, player) {
+        cell.status = player;
+        this.playerTurn = this.getOpposingPlayer();
+    },
+
+    humanTurn: function() {
+        this.UI.displayHumanTurnMessage();
+        // Render the initial set
+        this.updateSelectableCells();
+        this.UI.renderBoard(this.cells);
+    },
+
+    computerTurn: function() {
+        this.UI.displayComputerTurnMessage();
+    },
 
     getSelectableCells: function() {
         contenders = [];

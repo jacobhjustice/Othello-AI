@@ -2,6 +2,12 @@ body {
     background-color: #405060;
 }
 
+#Othello-Message {
+    font-size: 32px;
+    text-align: center;
+    margin: 50px;
+}
+
 #Othello-Board {
     margin: 0 auto;
     width: 400px;
@@ -17,8 +23,20 @@ body {
     display: table-cell;
     width: 50px;
     height: 50px;
-    border: 1px solid #8844ff;
+    border: 1px solid #000000;
     border-collapse: collapse;
+}
+
+.tileWrapper {
+    width: 100%;
+    box-sizing: border-box;
+    display: inline-block;
+    height: 100%;
+    background-color: #008f00;
+}
+
+.tileWrapper.selectable {
+    background-color: rgba(255, 255, 0, 0.7);
     cursor: pointer;
 }
 
@@ -26,7 +44,10 @@ body {
     border-radius: 100px;
     height: 80%;
     width: 80%;
-    margin: 10%;
+    margin: 0 auto;
+    margin-top: 5px;
+
+    box-sizing: border-box;
 }
 
 .tile.white {
@@ -36,3 +57,4 @@ body {
 .tile.black {
     background-color: #000000;
 }
+
