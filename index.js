@@ -43,6 +43,7 @@ var Othello = {
     currentGameCells: [],
     playerTurn: -1,
     humanPlayer: -1,
+    algorithmAI: 1,
     initialize: function() {
         // Create the set of cells
         this.currentGameCells = [];
@@ -99,15 +100,33 @@ var Othello = {
 
     computerTurn: function() {
         this.UI.setTurnMessageComputer();
-        // this.resetSelectableCells(this.currentGameCells);
-        // this.UI.updateBoard(this.currentGameCells);
-        this.humanTurn();
-        // this.UI.renderBoard(this.currentGameCells, (e) => {});
+        this.util.resetSelectableCells(this.currentGameCells);
+        this.UI.updateBoard(this.currentGameCells);
+
+        var moveCell;
 
         // AI Logic goes here.
         // minimax: Should use the existing functions to build trees of board states and determine the best option to a given depth
         // Should NOT go back and forth calling humanTurn and computerTurn as that will mess up the current "real" state of the game.
-        // If needed, consider creating a new class/struct to encapsulate all AI related computations
+        // If needed, consider creating a new struct to encapsulate all AI related computations
+        switch(this.algorithmAI) {
+            case 1: // Random move
+                moveCell = this.getRandomMove();
+                break;
+            case 2: // Greedy move
+                break;
+            case 3: // Minimax move
+            default:
+                moveCell = this.getRandomMove();
+        }
+
+        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 1000);
+    },
+
+    getRandomMove: function() {
+        var selectableCells = this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
+        var index = Math.floor(Math.random()*selectableCells.length) 
+        return selectableCells[index]
     },
 
     // Given a row and column to the currentGameCells
@@ -122,10 +141,12 @@ var Othello = {
         this.turn();
     },
 
+    // Util contains a series of functions that can be used from the Othello class,
+    // but are abstracted to their own level as to not access or modify information about the current player's turn or state of the game unless explicitly passed.
     util: {
         ROW_SIZE: 8,
         COL_SIZE:  8,
-        
+
         // Given an index and whether or not it corresponds to a row
         // Return whether or not the index is valid
         checkIndex(index, isRow) {
