@@ -149,7 +149,7 @@ var Othello = {
                 moveCell = this.getRandomMove();
         }
 
-        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 2000);
+        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 1000);
     },
 
     getRandomMove: function() {
