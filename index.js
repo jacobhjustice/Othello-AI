@@ -145,19 +145,30 @@ var Othello = {
                 moveCell = this.getRandomMove();
                 break;
             case 2: // Greedy move
+                moveCell = this.getGreedyMove();
                 break;
             case 3: // Minimax move
+                moveCell = this.getMinimaxMove();
+                break;
             default:
                 moveCell = this.getRandomMove();
         }
 
-        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 1000);
+        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 500);
     },
 
     getRandomMove: function() {
         var selectableCells = this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
         var index = Math.floor(Math.random()*selectableCells.length) 
         return selectableCells[index]
+    },
+
+    getGreedyMove: function() {
+
+    },
+
+    getMinimaxMove: function() {
+
     },
 
     // Given a row and column to the currentGameCells
