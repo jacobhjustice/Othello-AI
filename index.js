@@ -1,10 +1,5 @@
 var Othello = {  
-    Cell: function(row, column, status) {
-        this.row = row;
-        this.column = column;
-        this.status = status;
-        this.selectable = false;
-    },
+
 
     UI: {
         boardID: "#Othello-Board",
@@ -94,7 +89,7 @@ var Othello = {
                 else if ((r + 1 == this.util.ROW_SIZE / 2 && c == this.util.COL_SIZE / 2) || (r == this.util.ROW_SIZE / 2 && c + 1 == this.util.COL_SIZE / 2)) {
                     status = this.util.Status.WHITE;
                 }
-                row.push(new this.Cell(r, c, status));
+                row.push(new this.util.Cell(r, c, status));
             }
             this.currentGameCells.push(row);
         }
@@ -154,7 +149,7 @@ var Othello = {
                 moveCell = this.getRandomMove();
         }
 
-        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 500);
+        setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 2000);
     },
 
     getRandomMove: function() {
@@ -164,7 +159,19 @@ var Othello = {
     },
 
     getGreedyMove: function() {
+        var cells = this.currentGameCells;
+        var selectableCells = this.util.getSelectableCells(cells, this.playerTurn);
+        var bestScore;
+        var bestMove;
 
+        selectableCells.forEach((cell) => {
+            var score = this.util.getScoreFromPotentialMove(cells, this.playerTurn, cell.row, cell.column);
+            if(bestScore == undefined || bestScore[this.playerTurn] < score[this.playerTurn]) {
+                bestScore = score;
+                bestMove = cell;
+            }
+        });
+        return bestMove;
     },
 
     getMinimaxMove: function() {
@@ -220,6 +227,20 @@ var Othello = {
             return neighbors;
         },
 
+        // Given an array of cells
+        // Create a deep copy of this array so that the original set is not modified
+        copyCells: function(cells) {
+            var newCells = [];
+            cells.forEach((row) => {
+                var cells = [];
+                row.forEach((cell) => {
+                    cells.push(new this.Cell(cell.row, cell.column, cell.status))
+                });
+                newCells.push(cells);
+            });
+            return newCells;
+         },
+
         // Given a set of cells
         // Reset the selectable property in each infividual cell to false
         resetSelectableCells: function(cells) {
@@ -239,6 +260,35 @@ var Othello = {
             selectableCells.forEach(cell => {
                 cell.selectable = true;
             });
+        },
+
+        // Given a set of cells
+        // Evaluate the current score for both sides
+        getCurrentScore: function(cells) {
+            // TODO restructure to a state class so that this function isn't necesary and we can get constant time score lookups
+            var whiteScore = 0;
+            var blackScore = 0;
+            cells.forEach((row) => {
+                row.forEach((cell) => {
+                    if (cell.status == this.Status.WHITE) {
+                        whiteScore++;
+                    } else if (cell.status == this.Status.BLACK) {
+                        blackScore++;
+                    }
+                });
+            });
+
+            return this.Score(whiteScore, blackScore);
+        },
+
+        // Given a set of cells, player color, and the row/column of a potential move
+        // Evaluate the resulting score from taking that move
+        getScoreFromPotentialMove: function(cells, color, row, col) {
+            var coppiedCells = this.copyCells(cells);
+            var cell = coppiedCells[row][col];
+            cell.status = color;
+            this.flipEffectedCellsFromMove(coppiedCells, cell, color);
+            return this.getCurrentScore(coppiedCells);
         },
 
         // Given a set of cells, the current playerTurn, and a movedCell that has just been placed down
@@ -344,10 +394,24 @@ var Othello = {
             return this.Status.WHITE;
         },
 
+        Score: function(whiteScore, blackScore) {
+            var score = [];
+            score[this.Status.BLACK] = blackScore;
+            score[this.Status.WHITE] = whiteScore;
+            return score;
+        },
+
         Status: {
             UNDETERMINED: -1,
             WHITE: 1,
             BLACK: 0
+        },
+
+        Cell: function(row, column, status) {
+            this.row = row;
+            this.column = column;
+            this.status = status;
+            this.selectable = false;
         },
     },
 };
