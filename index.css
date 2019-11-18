@@ -1,11 +1,45 @@
+
+
+
 body {
     background-color: #405060;
+}
+
+#Othello-Select {
+    height: 100px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.difficultyButton {
+    width: 200px; 
+    height: 50px;
+    display: inline-block;
+    background-color: #ffffff;
+    cursor: pointer;
+    border-radius: 20px;
+    margin: 20px;
+    font-size: 30px;
+    text-align: center;
+    line-height: 50px;
+}
+
+.difficultyButton.easy {
+    background-color: #00a800;
+}
+
+.difficultyButton.med {
+    background-color: #a8a800;
+}
+
+.difficultyButton.hard {
+    background-color: #ff0000;
 }
 
 #Othello-Message {
     font-size: 32px;
     text-align: center;
-    margin: 50px;
+    margin: 50px;  
 }
 
 #Othello-Board {
@@ -58,3 +92,6 @@ body {
     background-color: #000000;
 }
 
+[v-cloak] .v-cloak--hidden{
+    display: none;
+  }
