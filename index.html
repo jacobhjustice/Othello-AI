@@ -1,8 +1,19 @@
 <!DOCTYPE html>
+<link rel = "stylesheet" href= "index.css"></link>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
 <html>
     <body>
-        <div id="Othello-Message">{{text}}</div>
-        <div id="Othello-Board">
+        <div id="Othello-Select"  v-show="loaded" class="v-cloak--hidden" v-cloak>
+            <div id="levelSelect">
+                <div class="difficultyButton easy" data-code="1" v-on:click="select">Beginner</div>
+                <div class="difficultyButton med" data-code="2" v-on:click="select">Intermediate</div>
+                <div class="difficultyButton hard" data-code="3" v-on:click="select">Master</div>
+
+            </div>
+        </div>
+        <div id="Othello-Message" v-show="loaded"   class="v-cloak--hidden" v-cloak>{{text}}</div>
+        <div id="Othello-Board" v-show="loaded" class="v-cloak--hidden" v-cloak>
             <div class="row" v-for="row in rows">
                 <div v-for="cell in row" class="cell" >
                     <div v-bind:class="{tileWrapper: true, selectable: cell.selectable == true }"  v-bind:data-row="cell.row" v-bind:data-column="cell.column" v-on:click="select">
@@ -14,6 +25,4 @@
     </body>
 </html>  
 
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="index.js"></script>
-<link rel = "stylesheet" href= "index.css"></link>

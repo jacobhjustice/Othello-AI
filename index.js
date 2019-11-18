@@ -9,12 +9,27 @@ var Othello = {
     UI: {
         boardID: "#Othello-Board",
         messageID: "#Othello-Message",
+        levelSelectID: "#Othello-Select",
         board: undefined,
+        levelSelect: undefined,
+        message: undefined,
+        initializeLevelSelectComponent: function(selectCallback) {
+            this.levelSelect = new Vue({
+                el: this.levelSelectID,
+                data: {
+                    loaded: false
+                },
+                methods: {
+                    select: selectCallback
+                }
+            });
+        },
         initializeBoardComponent: function(cells, selectCallback) {
             this.board = new Vue({
                 el: this.boardID,
                 data: {
                   rows: cells,
+                  loaded: false,
                 },
                 methods: {
                     select: selectCallback
@@ -26,6 +41,7 @@ var Othello = {
                 el: this.messageID,
                 data: {
                   text: "",
+                  loaded: false,
                 }
             });
         },
@@ -43,8 +59,29 @@ var Othello = {
     currentGameCells: [],
     playerTurn: -1,
     humanPlayer: -1,
-    algorithmAI: 1,
-    initialize: function() {
+    algorithmAI: -1,
+    load: function() {
+        // Initialize UI components
+        var self = this;
+        this.UI.initializeLevelSelectComponent((e) => {
+            var alg = parseInt(e.currentTarget.dataset.code);
+            self.initializeGame(alg);
+        });
+        this.UI.initializeMessageComponent();
+        this.UI.initializeBoardComponent(this.currentGameCells, (e) => {
+            if (e.currentTarget.classList.contains("selectable")) {
+                var row = e.currentTarget.dataset.row;
+                var col = e.currentTarget.dataset.column;
+                self.move(row, col);
+            }
+        });
+
+        this.UI.levelSelect.loaded = true;
+    },
+
+    initializeGame: function(algorithmCode) {
+        this.algorithmAI = algorithmCode;
+
         // Create the set of cells
         this.currentGameCells = [];
         for (var r = 0; r < this.util.ROW_SIZE; r++) {
@@ -67,17 +104,11 @@ var Othello = {
 
         // Set human player to black
         this.humanPlayer = this.util.Status.BLACK;
-
-        // Initialize UI
-        this.UI.initializeMessageComponent();
-        var self = this;
-        this.UI.initializeBoardComponent(this.currentGameCells, (e) => {
-            if (e.currentTarget.classList.contains("selectable")) {
-                var row = e.currentTarget.dataset.row;
-                var col = e.currentTarget.dataset.column;
-                self.move(row, col);
-            }
-        });
+        
+        // Update UI
+        this.UI.board.loaded = true;
+        this.UI.message.loaded = true;
+        this.UI.levelSelect.loaded = false;
 
         // Begin sequence of turns 
         this.turn();
@@ -310,4 +341,4 @@ var Othello = {
     },
 };
 
-Othello.initialize();
+Othello.load();
