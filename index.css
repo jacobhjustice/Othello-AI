@@ -95,3 +95,22 @@ body {
 [v-cloak] .v-cloak--hidden{
     display: none;
   }
+
+.minimaxDetails {
+    margin-top: 60px;
+    display: none;;
+    font-size: 32px;
+    color: ghostwhite;
+}
+
+.minimaxDetails input {
+    margin-top: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 30px;
+}
+
+
+.minimaxDetails.visible {
+    display: block;;
+}

@@ -24,6 +24,7 @@ var Othello = {
                 el: this.boardID,
                 data: {
                   rows: cells,
+                  depth: -1,
                   loaded: false,
                 },
                 methods: {
@@ -55,6 +56,7 @@ var Othello = {
     playerTurn: -1,
     humanPlayer: -1,
     algorithmAI: -1,
+    minimaxDepth: -1,
     load: function() {
         // Initialize UI components
         var self = this;
@@ -94,6 +96,10 @@ var Othello = {
             this.currentGameCells.push(row);
         }
 
+        if(this.algorithmAI == 3) {
+            this.minimaxDepth = 3;
+        }
+
         // Set Black to go first
         this.playerTurn = this.util.Status.BLACK;
 
@@ -101,7 +107,9 @@ var Othello = {
         this.humanPlayer = this.util.Status.BLACK;
         
         // Update UI
+        this.UI.board.depth = this.minimaxDepth;
         this.UI.board.loaded = true;
+
         this.UI.message.loaded = true;
         this.UI.levelSelect.loaded = false;
 
@@ -175,18 +183,49 @@ var Othello = {
     },
 
     getMinimaxMove: function() {
+        var util = this.util;
+        var AIPlayer = this.playerTurn;
+        function recursiveMinimax(board, depth, isAIPlayerTurn) {
+            var currentPlayer = isAIPlayerTurn ? AIPlayer : util.getOpposingPlayer(AIPlayer);
+            var potentials = util.getSelectableCells(board, currentPlayer);
 
+            // If the board is terminal or max depth is reached, bubble back up
+            if (depth == 0 || potentials.length == 0) {
+                return util.getCurrentScore(board)[AIPlayer];
+            }
+            var move = null;
+            // If it is the AI's turn, want to maximize score
+            if (isAIPlayerTurn) { 
+                var value = Number.NEGATIVE_INFINITY;
+                potentials.forEach((cell) => {
+                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)
+                    if (tempScore > value) {
+                        move = cell;
+                    }
+                });
+            }
+
+            // Otherwise it is opponent's turn, want to minimize score
+            else {
+                var value = Number.POSITIVE_INFINITY;
+                potentials.forEach((cell) => {
+                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)
+                    if (tempScore < value) {
+                        move = cell;
+                    }
+                });
+            }
+            return move;
+        };
+
+        return recursiveMinimax(util.copyCells(this.currentGameCells), this.minimaxDepth, true)
     },
 
     // Given a row and column to the currentGameCells
     // Set that cell to the current player's move.
     move: function(row, column) {
-        var cells = this.currentGameCells;
-        cell = cells[row][column]
-        cell.status = this.playerTurn;
-        this.util.flipEffectedCellsFromMove(cells, cell, this.playerTurn)
+        this.currentGameCells = this.util.move(this.currentGameCells, row, column, this.playerTurn)
         this.playerTurn = this.util.getOpposingPlayer(this.playerTurn);
-
         this.turn();
     },
 
@@ -204,6 +243,17 @@ var Othello = {
             }
             return (index < this.COL_SIZE && index >= 0)
         },
+
+        // Given a set of cells, a corresponding row, col, and turn
+        // Return a new set of cells that exists after making the corresponding move
+        move(cells, row, column, playerTurn) {
+            var newCells = this.copyCells(cells);
+            cell = newCells[row][column]
+            cell.status = playerTurn;
+            this.flipEffectedCellsFromMove(newCells, cell, playerTurn);
+            return newCells
+        },
+
 
         // Given a set of cells, and a specific cell in the set
         // Find the neighbors of cell
