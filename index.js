@@ -7,6 +7,7 @@ var Othello = {
         boardID: "#Othello-Board",
         messageID: "#Othello-Message",
         levelSelectID: "#Othello-Select",
+        levelSelect2ID: "#Othello-Select2",
         depthSelectID: "#Depth-Select",
         board: undefined,
         levelSelect: undefined,
@@ -35,6 +36,17 @@ var Othello = {
                     select: selectCallback
                 }
 
+            });
+        },
+        initializeControllerSelectComponent: function(selectCallback) {
+            this.controllerSelect = new Vue({
+                el: this.levelSelect2ID,
+                data: {
+                    loaded: false
+                },
+                methods: {
+                    select: selectCallback
+                }
             });
         },
         initializeBoardComponent: function(cells, selectCallback) {
@@ -83,24 +95,38 @@ var Othello = {
     playerTurn: -1,
     humanPlayer: -1,
     algorithmAI: -1,
+    humanMode: -1,
     minimaxDepth: -1,
     load: function() {
         // Initialize UI components
         var self = this;
         this.UI.initializeLevelSelectComponent((e) => {
             var alg = parseInt(e.currentTarget.dataset.code, -1);
-            self.initializeGame(alg);
-        }, (e) => {
-            self.UI.levelSelect.loaded = false;;
+            self.algorithmAI = alg;
+            self.UI.levelSelect.loaded = false;
+            self.UI.controllerSelect.loaded = true;
+        }, (_) => {
+            self.algorithmAI = 3;
+            self.UI.levelSelect.loaded = false;
             self.UI.depthSelect.loaded = true;
         });
+
         this.UI.initializeDepthSelectComponent((e) => {
             // pass in depth
             console.log(e)
             var depth = parseInt(e.target.attributes.value.value);
-            var alg = 3;
-            self.initializeGame(alg, depth);
+            self.minimaxDepth = depth;
+            self.UI.controllerSelect.loaded = true;
+            self.UI.depthSelect.loaded = false;
+
         })
+
+        this.UI.initializeControllerSelectComponent((e) => {
+            var action = parseInt(e.currentTarget.dataset.code);
+            self.humanMode = action;
+            self.initializeGame();
+        });
+
         this.UI.initializeMessageComponent();
         this.UI.initializeBoardComponent(this.currentGameCells, (e) => {
             if (e.currentTarget.classList.contains("selectable")) {
@@ -114,9 +140,7 @@ var Othello = {
         this.UI.levelSelect.loaded = true;
     },
 
-    initializeGame: function(algorithmCode, depth) {
-        this.algorithmAI = algorithmCode;
-
+    initializeGame: function() {
         // Create the set of cells
         this.currentGameCells = [];
         for (var r = 0; r < this.util.ROW_SIZE; r++) {
@@ -134,7 +158,6 @@ var Othello = {
             this.currentGameCells.push(row);
         }
 
-        this.minimaxDepth = depth != undefined ? depth : -1;
 
         // Set Black to go first
         this.playerTurn = this.util.Status.BLACK;
@@ -144,10 +167,11 @@ var Othello = {
         
         // Update UI
         this.UI.board.loaded = true;
-
         this.UI.message.loaded = true;
+
         this.UI.levelSelect.loaded = false;
         this.UI.depthSelect.loaded = false;
+        this.UI.controllerSelect.loaded = false;
 
         // Begin sequence of turns 
         this.turn();
@@ -172,10 +196,34 @@ var Othello = {
 
     
     humanTurn: function() {
-        this.UI.setTurnMessageHuman();
-        this.util.updateSelectableCells(this.currentGameCells, this.playerTurn);
-        var score = this.util.getCurrentScore(this.currentGameCells)
-        this.UI.updateBoard(this.currentGameCells, score[this.util.Status.WHITE], score[this.util.Status.BLACK]);
+        // Indicates the human is piloting
+        if(this.humanMode == 5) {
+            this.UI.setTurnMessageHuman();
+            this.util.updateSelectableCells(this.currentGameCells, this.playerTurn);
+            var score = this.util.getCurrentScore(this.currentGameCells)
+            this.UI.updateBoard(this.currentGameCells, score[this.util.Status.WHITE], score[this.util.Status.BLACK]);
+        } 
+        
+        // Indicates the AI is piloting for the human
+        else {
+            var score = this.util.getCurrentScore(this.currentGameCells)
+            this.UI.updateBoard(this.currentGameCells, score[this.util.Status.WHITE], score[this.util.Status.BLACK]);
+            var moveCell = null;
+            switch(this.humanMode) {
+                case 1: // Random move
+                    moveCell = this.getRandomMove();
+                    break;
+                case 2: // Greedy move
+                    moveCell = this.getGreedyMove();
+                    break;
+                case 3: // Minimax move
+                    moveCell = this.getMinimaxMove(3);
+                    break;
+            }
+
+            setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 1000);
+        }
+        
     },
 
     computerTurn: function() {
@@ -198,7 +246,7 @@ var Othello = {
                 moveCell = this.getGreedyMove();
                 break;
             case 3: // Minimax move
-                moveCell = this.getMinimaxMove();
+                moveCell = this.getMinimaxMove(this.minimaxDepth);
                 break;
             default:
                 moveCell = this.getRandomMove();
@@ -229,7 +277,7 @@ var Othello = {
         return bestMove;
     },
 
-    getMinimaxMove: function() {
+    getMinimaxMove: function(depth) {
         var util = this.util;
         var AIPlayer = this.playerTurn;
         function recursiveMinimax(board, depth, isAIPlayerTurn) {
@@ -270,7 +318,7 @@ var Othello = {
             return move;
         };
 
-        var r = recursiveMinimax(this.currentGameCells, this.minimaxDepth, true);
+        var r = recursiveMinimax(this.currentGameCells, depth, true);
         console.log(r[0])
         return r[1];
     },
