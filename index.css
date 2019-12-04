@@ -124,29 +124,29 @@ body {
     display: block;;
 }
 
-#Depth-Select {
+#Depth-Select, #Depth-Select2 {
     font-size: 32px;
     /* color: #ffaa00; */
 }
 
-#Depth-Select .header {
+#Depth-Select .header, #Depth-Select2 .header {
     text-align: center;
     margin: 30px;
 }
 
-#Depth-Select input {
+#Depth-Select input , #Depth-Select2 input {
     height: 24px;
     width: 24px;
 }
 
-#Depth-Select label {
+#Depth-Select label, #Depth-Select2 label {
     width: 100%;
     display: block;
     margin: 20px 0;
     text-align: center;
 }
 
-#Depth-Select .difficultyButton {
+#Depth-Select .difficultyButton, #Depth-Select2 .difficultyButton {
     margin: 0 auto;
     margin-top: 30px;
     color: black;

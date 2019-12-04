@@ -9,6 +9,7 @@ var Othello = {
         levelSelectID: "#Othello-Select",
         levelSelect2ID: "#Othello-Select2",
         depthSelectID: "#Depth-Select",
+        depthSelect2ID: "#Depth-Select2",
         board: undefined,
         levelSelect: undefined,
         message: undefined,
@@ -38,12 +39,26 @@ var Othello = {
 
             });
         },
-        initializeControllerSelectComponent: function(selectCallback) {
+        initializeControllerSelectComponent: function(selectCallback, depthSelectCallback) {
             this.controllerSelect = new Vue({
                 el: this.levelSelect2ID,
                 data: {
                     loaded: false
                 },
+                methods: {
+                    select: selectCallback,
+                    depthSelect: depthSelectCallback
+                }
+            });
+        },
+        initializeDepthBlackSelectComponent: function(selectCallback) {
+            this.depthBlackSelect = new Vue({
+                el: this.depthSelect2ID,
+                data: {
+                    loaded: false,
+                    depths: [1,3,5,7],
+                    depthSel: 3,
+                }, 
                 methods: {
                     select: selectCallback
                 }
@@ -96,6 +111,7 @@ var Othello = {
     humanPlayer: -1,
     algorithmAI: -1,
     humanMode: -1,
+    humanMinimaxDepth: -1,
     minimaxDepth: -1,
     load: function() {
         // Initialize UI components
@@ -113,7 +129,6 @@ var Othello = {
 
         this.UI.initializeDepthSelectComponent((e) => {
             // pass in depth
-            console.log(e)
             var depth = parseInt(e.target.attributes.value.value);
             self.minimaxDepth = depth;
             self.UI.controllerSelect.loaded = true;
@@ -124,6 +139,16 @@ var Othello = {
         this.UI.initializeControllerSelectComponent((e) => {
             var action = parseInt(e.currentTarget.dataset.code);
             self.humanMode = action;
+            self.initializeGame();
+        }, (_) => {
+            self.humanMode = 3;
+            self.UI.controllerSelect.loaded = false;
+            self.UI.depthBlackSelect.loaded = true;
+        });
+
+        this.UI.initializeDepthBlackSelectComponent((e) => {
+            var depth = parseInt(e.target.attributes.value.value);
+            self.humanMinimaxDepth = depth;
             self.initializeGame();
         });
 
@@ -172,6 +197,7 @@ var Othello = {
         this.UI.levelSelect.loaded = false;
         this.UI.depthSelect.loaded = false;
         this.UI.controllerSelect.loaded = false;
+        this.UI.depthBlackSelect.loaded = false;
 
         // Begin sequence of turns 
         this.turn();
@@ -217,7 +243,7 @@ var Othello = {
                     moveCell = this.getGreedyMove();
                     break;
                 case 3: // Minimax move
-                    moveCell = this.getMinimaxMove(3);
+                    moveCell = this.getMinimaxMove(this.humanMinimaxDepth);
                     break;
             }
 

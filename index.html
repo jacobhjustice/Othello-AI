@@ -19,16 +19,19 @@
                 <div id="levelSelect">
                     <div class="difficultyButton easy" data-code="1" v-on:click="select">Beginner AI</div>
                     <div class="difficultyButton med" data-code="2" v-on:click="select">Intermediate AI</div>
-                    <div class="difficultyButton hard" data-code="3" v-on:click="select">Master AI (Depth 3)</div>
-    
+                    <div class="difficultyButton hard" data-code="3" v-on:click="depthSelect">Master AI</div>
                 </div>
             </div>
         <div id="Depth-Select"  v-show="loaded" class="v-cloak--hidden" v-cloak> 
             <div class="header">Select your Depth! <br/>The higher the value, the harder the AI will be.</div>
             <label v-for="d in depths">{{d}} <input @change="$emit('input', $event.target.value)" selected v-model="depthSel" v-bind:value="d" :checked="d == 3" type="radio" name="depth"></label>
-            
             <div class="difficultyButton" data-code="3" v-on:click="select" v-bind:value="depthSel" >Play with Depth {{depthSel}}</div>
         </div>
+        <div id="Depth-Select2"  v-show="loaded" class="v-cloak--hidden" v-cloak> 
+                <div class="header">Select your Depth! <br/>The higher the value, the harder the AI will be.</div>
+                <label v-for="d in depths">{{d}} <input @change="$emit('input', $event.target.value)" selected v-model="depthSel" v-bind:value="d" :checked="d == 3" type="radio" name="depth"></label>
+                <div class="difficultyButton" data-code="3" v-on:click="select" v-bind:value="depthSel" >Play with Depth {{depthSel}}</div>
+            </div>
         <div id="Othello-Message" v-show="loaded"   class="v-cloak--hidden" v-cloak>{{text}}</div>
         <div id="Othello-Board" v-show="loaded" class="v-cloak--hidden" v-cloak>
             <div class="row" v-for="row in rows">
