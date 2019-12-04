@@ -44,6 +44,8 @@ var Othello = {
                   rows: cells,
                   depth: -1,
                   loaded: false,
+                  whiteScore: 2,
+                  blackScore: 2
                 },
                 methods: {
                     select: selectCallback,
@@ -65,8 +67,15 @@ var Othello = {
         setTurnMessageHuman: function() {
             this.message.text = "Select a highlighted cell to move there!";
         },
-        updateBoard: function(cells) {
+
+        setTurnMessageGameover: function() {
+            this.message.text = "That's it! Game over!!!";
+        },
+
+        updateBoard: function(cells, whiteScore, blackScore) {
             this.board.rows = cells;
+            this.board.whiteScore = whiteScore;
+            this.board.blackScore = blackScore;
         }
     },
 
@@ -146,6 +155,14 @@ var Othello = {
     }, 
 
     turn: function() {
+        var selectable =  this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
+        if(selectable.length == 0) {
+            this.playerTurn = this.util.getOpposingPlayer(this.playerTurn)
+            var selectable =  this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
+            if(selectable.length == 0) {
+                return this.UI.setTurnMessageGameover();
+            }
+        }
         if (this.humanPlayer == this.playerTurn) {
             this.humanTurn();
         } else {
@@ -153,16 +170,19 @@ var Othello = {
         }
     },
 
+    
     humanTurn: function() {
         this.UI.setTurnMessageHuman();
         this.util.updateSelectableCells(this.currentGameCells, this.playerTurn);
-        this.UI.updateBoard(this.currentGameCells);
+        var score = this.util.getCurrentScore(this.currentGameCells)
+        this.UI.updateBoard(this.currentGameCells, score[this.util.Status.WHITE], score[this.util.Status.BLACK]);
     },
 
     computerTurn: function() {
         this.UI.setTurnMessageComputer();
         this.util.resetSelectableCells(this.currentGameCells);
-        this.UI.updateBoard(this.currentGameCells);
+        var score = this.util.getCurrentScore(this.currentGameCells)
+        this.UI.updateBoard(this.currentGameCells, score[this.util.Status.WHITE], score[this.util.Status.BLACK]);
 
         var moveCell;
 
