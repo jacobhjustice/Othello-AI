@@ -5,18 +5,34 @@ var Othello = {
         boardID: "#Othello-Board",
         messageID: "#Othello-Message",
         levelSelectID: "#Othello-Select",
+        depthSelectID: "#Depth-Select",
         board: undefined,
         levelSelect: undefined,
         message: undefined,
-        initializeLevelSelectComponent: function(selectCallback) {
+        initializeLevelSelectComponent: function(selectCallback, depthSelectCallback) {
             this.levelSelect = new Vue({
                 el: this.levelSelectID,
                 data: {
                     loaded: false
                 },
                 methods: {
+                    select: selectCallback,
+                    depthSelect: depthSelectCallback
+                }
+            });
+        },
+        initializeDepthSelectComponent: function(selectCallback) {
+            this.depthSelect = new Vue({
+                el: this.depthSelectID,
+                data: {
+                    loaded: false,
+                    depths: [1,2,3,4,5,6,7],
+                    depthSel: 3,
+                }, 
+                methods: {
                     select: selectCallback
                 }
+
             });
         },
         initializeBoardComponent: function(cells, selectCallback) {
@@ -28,7 +44,7 @@ var Othello = {
                   loaded: false,
                 },
                 methods: {
-                    select: selectCallback
+                    select: selectCallback,
                 }
             });
         },
@@ -61,9 +77,19 @@ var Othello = {
         // Initialize UI components
         var self = this;
         this.UI.initializeLevelSelectComponent((e) => {
-            var alg = parseInt(e.currentTarget.dataset.code);
+            var alg = parseInt(e.currentTarget.dataset.code, -1);
             self.initializeGame(alg);
+        }, (e) => {
+            self.UI.levelSelect.loaded = false;;
+            self.UI.depthSelect.loaded = true;
         });
+        this.UI.initializeDepthSelectComponent((e) => {
+            // pass in depth
+            console.log(e)
+            var depth = parseInt(e.target.attributes.value.value);
+            var alg = 3;
+            self.initializeGame(alg, depth);
+        })
         this.UI.initializeMessageComponent();
         this.UI.initializeBoardComponent(this.currentGameCells, (e) => {
             if (e.currentTarget.classList.contains("selectable")) {
@@ -73,10 +99,11 @@ var Othello = {
             }
         });
 
+        
         this.UI.levelSelect.loaded = true;
     },
 
-    initializeGame: function(algorithmCode) {
+    initializeGame: function(algorithmCode, depth) {
         this.algorithmAI = algorithmCode;
 
         // Create the set of cells
@@ -96,9 +123,7 @@ var Othello = {
             this.currentGameCells.push(row);
         }
 
-        if(this.algorithmAI == 3) {
-            this.minimaxDepth = 3;
-        }
+        this.minimaxDepth = depth != undefined ? depth : -1;
 
         // Set Black to go first
         this.playerTurn = this.util.Status.BLACK;
@@ -107,11 +132,11 @@ var Othello = {
         this.humanPlayer = this.util.Status.BLACK;
         
         // Update UI
-        this.UI.board.depth = this.minimaxDepth;
         this.UI.board.loaded = true;
 
         this.UI.message.loaded = true;
         this.UI.levelSelect.loaded = false;
+        this.UI.depthSelect.loaded = false;
 
         // Begin sequence of turns 
         this.turn();
@@ -189,18 +214,18 @@ var Othello = {
             var currentPlayer = isAIPlayerTurn ? AIPlayer : util.getOpposingPlayer(AIPlayer);
             var potentials = util.getSelectableCells(board, currentPlayer);
 
-            // If the board is terminal or max depth is reached, bubble back up
+            // If the board is terminal or max depth is reached. Return the AI's overall score and bubble back up
             if (depth == 0 || potentials.length == 0) {
-                return util.getCurrentScore(board)[AIPlayer];
+                return [util.getCurrentScore(board)[AIPlayer], null];
             }
             var move = null;
             // If it is the AI's turn, want to maximize score
             if (isAIPlayerTurn) { 
                 var value = Number.NEGATIVE_INFINITY;
                 potentials.forEach((cell) => {
-                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)
+                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)[0]
                     if (tempScore > value) {
-                        move = cell;
+                        move = [tempScore, cell];
                     }
                 });
             }
@@ -209,16 +234,16 @@ var Othello = {
             else {
                 var value = Number.POSITIVE_INFINITY;
                 potentials.forEach((cell) => {
-                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)
+                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)[0]
                     if (tempScore < value) {
-                        move = cell;
+                        move = [tempScore, cell];
                     }
                 });
             }
             return move;
         };
 
-        return recursiveMinimax(util.copyCells(this.currentGameCells), this.minimaxDepth, true)
+        return recursiveMinimax(util.copyCells(this.currentGameCells), this.minimaxDepth, true)[1];
     },
 
     // Given a row and column to the currentGameCells

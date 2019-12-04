@@ -5,6 +5,12 @@ body {
     background-color: #405060;
 }
 
+#header {
+    font-size: 48px;
+    color: whitesmoke;
+    margin-bottom: 20px;;
+}
+
 #Othello-Select {
     height: 100px;
     text-align: center;
@@ -15,7 +21,7 @@ body {
     width: 200px; 
     height: 50px;
     display: inline-block;
-    background-color: #ffffff;
+    background-color: #d0d0d0;
     cursor: pointer;
     border-radius: 20px;
     margin: 20px;
@@ -113,4 +119,34 @@ body {
 
 .minimaxDetails.visible {
     display: block;;
+}
+
+#Depth-Select {
+    font-size: 32px;
+    color: #ffaa00;
+}
+
+#Depth-Select .header {
+    text-align: center;
+    margin: 30px;
+}
+
+#Depth-Select input {
+    height: 24px;
+    width: 24px;
+}
+
+#Depth-Select label {
+    width: 100%;
+    display: block;
+    margin: 20px 0;
+    text-align: center;
+}
+
+#Depth-Select .difficultyButton {
+    margin: 0 auto;
+    margin-top: 30px;
+    color: black;
+    display: inherit;
+    width: 300px;
 }

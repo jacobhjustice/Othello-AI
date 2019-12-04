@@ -3,14 +3,21 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
 <html>
-    <body>
+    <body class="hidden">
         <div id="Othello-Select"  v-show="loaded" class="v-cloak--hidden" v-cloak>
+            <div id="header">Select AI difficulty.</div>
             <div id="levelSelect">
                 <div class="difficultyButton easy" data-code="1" v-on:click="select">Beginner</div>
                 <div class="difficultyButton med" data-code="2" v-on:click="select">Intermediate</div>
-                <div class="difficultyButton hard" data-code="3" v-on:click="select">Master</div>
+                <div class="difficultyButton hard" data-code="3" v-on:click="depthSelect">Master</div>
 
             </div>
+        </div>
+        <div id="Depth-Select"  v-show="loaded" class="v-cloak--hidden" v-cloak> 
+            <div class="header">Select your Depth! <br/>The higher the value, the harder the AI will be.</div>
+            <label v-for="d in depths">{{d}} <input @change="$emit('input', $event.target.value)" selected v-model="depthSel" v-bind:value="d" :checked="d == 3" type="radio" name="depth"></label>
+            
+            <div class="difficultyButton" data-code="3" v-on:click="select" v-bind:value="depthSel" >Play with Depth {{depthSel}}</div>
         </div>
         <div id="Othello-Message" v-show="loaded"   class="v-cloak--hidden" v-cloak>{{text}}</div>
         <div id="Othello-Board" v-show="loaded" class="v-cloak--hidden" v-cloak>
@@ -21,11 +28,6 @@
                     </div>
                 </div>
             </div>
-            <!-- <div v-bind:class="{visible: depth > -1, minimaxDetails: true}" >
-                <label for="minimaxDepth">Minimax Depth: </label>
-                <input min="1" id="minimaxDepth" max ="13" placeholder="3" type="number" v-model="depth"/>
-
-            </div> -->
         </div>
     </body>
 </html>  
