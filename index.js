@@ -208,8 +208,10 @@ var Othello = {
         var selectable =  this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
         if(selectable.length == 0) {
             this.playerTurn = this.util.getOpposingPlayer(this.playerTurn)
-            var selectable =  this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
+            selectable =  this.util.getSelectableCells(this.currentGameCells, this.playerTurn);
             if(selectable.length == 0) {
+                var score = this.util.getCurrentScore(this.currentGameCells)
+                this.UI.updateBoard(this.currentGameCells, score[this.util.Status.WHITE], score[this.util.Status.BLACK]);
                 return this.UI.setTurnMessageGameover();
             }
         }
