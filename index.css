@@ -9,6 +9,7 @@ body {
     font-size: 48px;
     color: whitesmoke;
     margin-bottom: 20px;;
+    height: 100px;
 }
 
 #Othello-Select {
@@ -46,6 +47,7 @@ body {
     font-size: 32px;
     text-align: center;
     margin: 50px;  
+    height: 100px;
 }
 
 #Othello-Board {

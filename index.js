@@ -1,3 +1,5 @@
+var global_board;
+
 var Othello = {  
 
 
@@ -26,7 +28,7 @@ var Othello = {
                 el: this.depthSelectID,
                 data: {
                     loaded: false,
-                    depths: [1,2,3,4,5,6,7],
+                    depths: [1,3,5,7],
                     depthSel: 3,
                 }, 
                 methods: {
@@ -216,15 +218,18 @@ var Othello = {
 
             // If the board is terminal or max depth is reached. Return the AI's overall score and bubble back up
             if (depth == 0 || potentials.length == 0) {
-                return [util.getCurrentScore(board)[AIPlayer], null];
+                var score = util.getCurrentScore(board)[AIPlayer]
+                return [score, null];
             }
             var move = null;
+
             // If it is the AI's turn, want to maximize score
             if (isAIPlayerTurn) { 
                 var value = Number.NEGATIVE_INFINITY;
                 potentials.forEach((cell) => {
-                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)[0]
+                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, currentPlayer), depth - 1, !isAIPlayerTurn)[0]
                     if (tempScore > value) {
+                        value = tempScore
                         move = [tempScore, cell];
                     }
                 });
@@ -234,16 +239,20 @@ var Othello = {
             else {
                 var value = Number.POSITIVE_INFINITY;
                 potentials.forEach((cell) => {
-                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, util.getOpposingPlayer(currentPlayer)), depth - 1, !isAIPlayerTurn)[0]
+                    var tempScore = recursiveMinimax(util.move(board, cell.row, cell.column, currentPlayer), depth - 1, !isAIPlayerTurn)[0]
                     if (tempScore < value) {
+                        value = tempScore
                         move = [tempScore, cell];
                     }
                 });
             }
+            
             return move;
         };
 
-        return recursiveMinimax(util.copyCells(this.currentGameCells), this.minimaxDepth, true)[1];
+        var r = recursiveMinimax(this.currentGameCells, this.minimaxDepth, true);
+        console.log(r[0])
+        return r[1];
     },
 
     // Given a row and column to the currentGameCells
