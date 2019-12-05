@@ -247,6 +247,7 @@ var Othello = {
                 case 3: // Minimax move
                     moveCell = this.getMinimaxMove(this.humanMinimaxDepth);
                     break;
+                case 4: // Simulated Annealing Move
             }
 
             setTimeout((_) => {this.move(moveCell.row, moveCell.column)}, 1000);
@@ -308,15 +309,26 @@ var Othello = {
     getMinimaxMove: function(depth) {
         var util = this.util;
         var AIPlayer = this.playerTurn;
+
         function recursiveMinimax(board, depth, isAIPlayerTurn) {
             var currentPlayer = isAIPlayerTurn ? AIPlayer : util.getOpposingPlayer(AIPlayer);
             var potentials = util.getSelectableCells(board, currentPlayer);
 
             // If the board is terminal or max depth is reached. Return the AI's overall score and bubble back up
-            if (depth == 0 || potentials.length == 0) {
+            if (depth == 0) {
                 var score = util.getCurrentScore(board)[AIPlayer]
                 return [score, null];
             }
+            if (potentials.length == 0) {
+                isAIPlayerTurn = !isAIPlayerTurn
+                currentPlayer = isAIPlayerTurn ? AIPlayer : util.getOpposingPlayer(AIPlayer);
+                potentials = util.getSelectableCells(board, currentPlayer);
+                if (potentials.length == 0) {
+                    var score = util.getCurrentScore(board)[AIPlayer]
+                    return [score, null];
+                }
+            }
+
             var move = null;
 
             // If it is the AI's turn, want to maximize score
