@@ -1,0 +1,1 @@
+In order to run locally, simply open up the index.html file in google chrome 
