@@ -10,4 +10,6 @@ For a senior AI assignment, we were to implement some form of an artificial inte
 
 ## How?
 
+You can view the app by going to https://jacobhjustice.github.io/Othello-AI/
+
 In order to run locally, simply open up the index.html file in google chrome 
